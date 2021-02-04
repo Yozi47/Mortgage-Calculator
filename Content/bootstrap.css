@@ -26,6 +26,7 @@ nav,
 section,
 summary {
   display: block;
+    margin-top: 53px;
 }
 audio,
 canvas,
@@ -118,8 +119,7 @@ optgroup,
 select,
 textarea {
   color: inherit;
-  font: inherit;
-  margin: 0;
+  margin: 0px 0 0 0px;
 }
 button {
   overflow: visible;
@@ -2348,6 +2348,8 @@ pre code {
 }
 table {
   background-color: transparent;
+    margin-left: 43px;
+    margin-top: 24px;
 }
 table col[class*="col-"] {
   position: static;
