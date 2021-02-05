@@ -4,123 +4,133 @@ using System.Linq;
 using System.Web;
 using System.Web.UI;
 using System.Web.UI.WebControls;
+using System.Text;
 
 namespace Mortgage_Calculator
 {
     public partial class _Default : Page
     {
-        double mortgage_amt;
+        decimal mortgage_amt;
         double years;
         double paymentPerYear;
-        double downpayment;
-        double requiredPayment;
+        decimal downpayment;
+        decimal requiredPayment;
         double rate;
-        bool recurring = false;
-        double extraPay;
+        bool recurring;
+        decimal extraPay;
+        int addAt;
+        decimal totalInterestPaid;
 
 
 
 
         protected void Page_Load(object sender, EventArgs e)
         {
-
-            if (Double.TryParse(Session["Mortgage Amt"].ToString(), out mortgage_amt))
+            if (Session["Mortgage Amt"] != null)
             {
-                TextBox1.ForeColor = System.Drawing.Color.Black;
+                mortgage_amt = Decimal.Parse(Session["Mortgage Amt"].ToString());
+            }
+            if (Session["Years"] != null) 
+            {
+                years = Double.Parse(Session["Years"].ToString());
             }
 
-            else
+            if (Session["Payments Per year"] != null) 
             {
-                TextBox1.ForeColor = System.Drawing.Color.Red;
-                TextBox1.Text = "Invalid Input";
+                paymentPerYear = Double.Parse(Session["Payments Per year"].ToString());
             }
 
-            if (Double.TryParse(Session["Years"].ToString(), out years)) 
+            if (Session["Rate"] != null)
             {
-                TextBox2.ForeColor = System.Drawing.Color.Black;
+                rate = Double.Parse(Session["Rate"].ToString());
             }
 
-            else
+            if (Session["Extra Payment"] != null)
             {
-                TextBox2.ForeColor = System.Drawing.Color.Red;
-                TextBox2.Text = "Invalid Input";
+                extraPay = Decimal.Parse(Session["Extra Payment"].ToString());
             }
 
-            if ( Double.TryParse(Session["Payments Per year"].ToString(), out paymentPerYear))
+            if (Session["Required Payment"] != null)
             {
-                TextBox3.ForeColor = System.Drawing.Color.Black;
-            }
+                requiredPayment = Decimal.Parse(Session["Required Payment"].ToString());
 
-            else
+            }
+            if (Session["DownPayment"] != null)
             {
-                TextBox3.ForeColor = System.Drawing.Color.Red;
-                TextBox3.Text = "Invalid Input";
-            }
+                downpayment = Decimal.Parse(Session["DownPayment"].ToString());
 
-            if (Double.TryParse(Session["DownPayment"].ToString(), out downpayment))
+            }
+            if (Session["Add at"] != null)
             {
-                TextBox4.ForeColor = System.Drawing.Color.Black;
-            }
+                addAt = Int32.Parse(Session["Add at"].ToString());
 
-            else
+            }
+            if (Session["Checked"] != null)
             {
-                TextBox4.ForeColor = System.Drawing.Color.Red;
-                TextBox4.Text = "Invalid Input";
+                recurring = Convert.ToBoolean(Session["Checked"]);
+
             }
-
-            if (Double.TryParse(Session["Rate"].ToString(), out rate)) 
-            {
-                TextBox7.ForeColor = System.Drawing.Color.Black;
-            }
-
-            else
-            {
-                TextBox7.ForeColor = System.Drawing.Color.Red;
-                TextBox7.Text = "Invalid Input";
-            }
-
-            if (Double.TryParse(Session["Extra Payment"].ToString(), out extraPay))
-            {
-                TextBox6.ForeColor = System.Drawing.Color.Black;
-            }
-
-            else
-            {
-                TextBox6.ForeColor = System.Drawing.Color.Red;
-                TextBox6.Text = "Invalid Input";
-            }
-
-
-
 
         }
-
-        protected void RadioButton1_CheckedChanged(object sender, EventArgs e)
-        {
-            if (RadioButton1.Checked)
-            {
-                recurring = true;
-            }
-        }
-
+                
         protected void Button1_Click(object sender, EventArgs e)
         {
             //Create table with the required columns.
-            CreateHeaderRow();
-
-            int term = 0;
-            int cells = 6;
-            double interestAmt = 0;
-            double principalAmt = 0;
-            while (mortgage_amt > 0)
+            requiredPayment = CalcMinPayment();
+            if (mortgage_amt > 0 && years > 0 && paymentPerYear > 0 && downpayment >= 0 && rate > 0 && extraPay >= 0 && addAt >= 0)
             {
-                CreateValueRow(cells, term, requiredPayment, extraPay, interestAmt, principalAmt, mortgage_amt);
-                interestAmt = rate / (100 * paymentPerYear) * mortgage_amt;
-                principalAmt = requiredPayment - interestAmt;
-                mortgage_amt -= principalAmt;
-                term += 1;
+                CreateHeaderRow();
+                decimal interestStraightWay = requiredPayment * (decimal)(years * paymentPerYear) - mortgage_amt;
+
+                int term = 0;
+                decimal interestAmt = 0;
+                decimal principalAmt = 0;
+                decimal initialpay = 0;
+                decimal additionalPay = 0;
+                CreateValueRow(term, initialpay, additionalPay, interestAmt, principalAmt, mortgage_amt);
+                while (mortgage_amt > 0 && term < (years * paymentPerYear))
+                {
+                    term += 1;
+                    if (recurring || addAt == term)
+                    {
+                        additionalPay = extraPay;
+                    }
+                    else
+                    {
+                        additionalPay = 0;
+                    }
+                    interestAmt = (decimal)(rate / (100 * paymentPerYear)) * mortgage_amt;
+                    totalInterestPaid += interestAmt;
+                    principalAmt = requiredPayment - interestAmt + additionalPay;
+                    mortgage_amt -= principalAmt;
+                    CreateValueRow(term, requiredPayment, additionalPay, interestAmt, principalAmt, mortgage_amt);
+
+                }
+
+                //Printing out some valueable information.
+                TextArea1.Visible = true;
+                StringBuilder content = new StringBuilder();
+                content.AppendLine("Interest without additional payment = ");
+                content.Append(interestStraightWay);
+                content.AppendLine("Interest this way = ");
+                content.Append(totalInterestPaid);
+                content.AppendLine("Total saving in Interest = ");
+                content.Append(interestStraightWay - totalInterestPaid);
+
+                TextArea1.InnerText = content.ToString();
 
 
+            }
+            else
+            {
+                TableCell error = new TableCell();
+                error.ForeColor = System.Drawing.Color.Red;
+                error.Text = "Check your Inputs";
+
+                TableRow errorRow = new TableRow();
+                errorRow.Cells.Add(error);
+
+                Table1.Rows.Add(errorRow);
             }
 
         }
@@ -134,6 +144,11 @@ namespace Mortgage_Calculator
             TextBox5.Text = string.Empty;
             TextBox6.Text = string.Empty;
             TextBox7.Text = string.Empty;
+            TextBox8.Text = string.Empty;
+            CheckBox1.Checked = false;
+            TextBox8.Visible = true;
+            Label5.Visible = true;
+            Session.Clear();
         }
 
         protected void Button3_Click(object sender, EventArgs e)
@@ -147,7 +162,7 @@ namespace Mortgage_Calculator
             TableRow columnRow = new TableRow();
             Table1.Rows.Add(columnRow);
 
-
+            
             TableCell termCount = new TableCell();
             termCount.Text = "Num. of Terms";
             columnRow.Cells.Add(termCount);
@@ -177,78 +192,80 @@ namespace Mortgage_Calculator
             columnRow.Cells.Add(loanRemaining);
         }
 
-        private void CreateValueRow(int cells, int termcount, double monthlypay, double extrapay, double interestpay, double principalpay, double remaining)
+        private void CreateValueRow(int termcount, decimal monthlypay, decimal extrapay, decimal interestpay, decimal principalpay, decimal remaining)
         {
             TableRow columnRow = new TableRow();
             Table1.Rows.Add(columnRow);
-            if (termcount == 0)
-            {
-                for (int i = 1; i < cells;  i++)
-                {
+            //if (termcount == 0)
+            //{
+            //    for (int i = 1; i < cells;  i++)
+            //    {
 
-                    TableCell termCount = new TableCell();
-                    columnRow.Cells.Add(termCount);
+            //        TableCell termCount = new TableCell();
+            //        columnRow.Cells.Add(termCount);
 
-                    TableCell monthlyPay = new TableCell();
-                    columnRow.Cells.Add(monthlyPay);
-
-
-                    TableCell extraPayment = new TableCell();
-                    columnRow.Cells.Add(extraPayment);
+            //        TableCell monthlyPay = new TableCell();
+            //        columnRow.Cells.Add(monthlyPay);
 
 
-                    TableCell paidInterest = new TableCell();
-                    columnRow.Cells.Add(paidInterest);
+            //        TableCell extraPayment = new TableCell();
+            //        columnRow.Cells.Add(extraPayment);
 
 
-                    TableCell paidPrincipal = new TableCell();
-                    columnRow.Cells.Add(paidPrincipal);
-                }
-                TableCell loanRemaining = new TableCell();
-                loanRemaining.Text = remaining.ToString();
-                columnRow.Cells.Add(loanRemaining);
-            }
-            else
-            {
-                TableCell termCount = new TableCell();
-                termCount.Text = termcount.ToString();
-                columnRow.Cells.Add(termCount);
-
-                TableCell monthlyPay = new TableCell();
-                monthlyPay.Text = monthlypay.ToString();
-                columnRow.Cells.Add(monthlyPay);
+            //        TableCell paidInterest = new TableCell();
+            //        columnRow.Cells.Add(paidInterest);
 
 
-                TableCell extraPayment = new TableCell();
-                extraPayment.Text = extrapay.ToString();
-                columnRow.Cells.Add(extraPayment);
+            //        TableCell paidPrincipal = new TableCell();
+            //        columnRow.Cells.Add(paidPrincipal);
+            //    }
+            //    TableCell loanRemaining = new TableCell
+            //    {
+            //        Text = remaining.ToString()
+            //    };
+            //    columnRow.Cells.Add(loanRemaining);
+            //}
+            //else
+            //{
+            TableCell termCount = new TableCell();
+            termCount.Text = termcount.ToString();
+            columnRow.Cells.Add(termCount);
+
+            TableCell monthlyPay = new TableCell();
+            monthlyPay.Text = Math.Round(monthlypay,2).ToString();
+            columnRow.Cells.Add(monthlyPay);
 
 
-                TableCell paidInterest = new TableCell();
-                paidInterest.Text = interestpay.ToString();
-                columnRow.Cells.Add(paidInterest);
+            TableCell extraPayment = new TableCell();
+            extraPayment.Text = Math.Round(extrapay,2).ToString();
+            columnRow.Cells.Add(extraPayment);
 
 
-                TableCell paidPrincipal = new TableCell();
-                paidPrincipal.Text = principalpay.ToString();
-                columnRow.Cells.Add(paidPrincipal);
+            TableCell paidInterest = new TableCell();
+            paidInterest.Text = Math.Round(interestpay,2).ToString();
+            columnRow.Cells.Add(paidInterest);
 
 
-                TableCell loanRemaining = new TableCell();
-                loanRemaining.Text = remaining.ToString();
-                columnRow.Cells.Add(loanRemaining);
+            TableCell paidPrincipal = new TableCell();
+            paidPrincipal.Text = Math.Round(principalpay,2).ToString();
+            columnRow.Cells.Add(paidPrincipal);
 
-            }
+
+            TableCell loanRemaining = new TableCell();
+            loanRemaining.Text = Math.Round(remaining,2).ToString();
+            columnRow.Cells.Add(loanRemaining);
+            //}
         }
 
-        private double CalcMinPayment()
+        private decimal CalcMinPayment()
         {
             if(mortgage_amt > 0 && years > 0 && paymentPerYear > 0 && downpayment >= 0 && rate > 0)
             {
                 TextBox5.ForeColor = System.Drawing.Color.Black;
-                TextBox5.Text = Math.Ceiling(mortgage_amt * (rate / (100 * paymentPerYear))* Math.Pow(1 + (rate / (100 * paymentPerYear)),years * paymentPerYear)/
-                                (Math.Pow(1 + (rate / (100 * paymentPerYear)), years * paymentPerYear) -1 )).ToString();
-                return double.Parse(TextBox5.Text);
+                TextBox5.Text = Math.Round((mortgage_amt * (decimal)(rate / (100 * paymentPerYear))* (decimal)Math.Pow(1 + (rate / (100 * paymentPerYear)),years * paymentPerYear)/
+                                (decimal)(Math.Pow(1 + (rate / (100 * paymentPerYear)), years * paymentPerYear) -1 ))).ToString();
+                Session["Required Payment"] = TextBox5.Text;
+                return Decimal.Parse(TextBox5.Text);
             }
             else
             {
@@ -261,31 +278,98 @@ namespace Mortgage_Calculator
         protected void TextBox1_TextChanged(object sender, EventArgs e)
         {
             Session["Mortgage Amt"] = TextBox1.Text;
+            if (!decimal.TryParse(Session["Mortgage Amt"].ToString(), out mortgage_amt))
+            {
+                Session["Mortgage Amt"] = 0;
+                mortgage_amt = 0;
+            }
         }
 
         protected void TextBox2_TextChanged(object sender, EventArgs e)
         {
             Session["Years"] = TextBox2.Text;
+            if (!Double.TryParse(Session["Years"].ToString(), out years))
+            {            
+                Session["Years"] = 0;
+                years = 0;
+            }
         }
 
         protected void TextBox3_TextChanged(object sender, EventArgs e)
         {
             Session["Payments Per year"] = TextBox3.Text;
+            if (!Double.TryParse(Session["Payments Per year"].ToString(), out paymentPerYear))
+            {
+                Session["Payments Per year"] = 0;
+                paymentPerYear = 0;
+            }
         }
 
         protected void TextBox4_TextChanged(object sender, EventArgs e)
         {
             Session["DownPayment"] = TextBox4.Text;
+            if (!decimal.TryParse(Session["DownPayment"].ToString(), out downpayment))
+            {
+                Session["DownPayment"] = 0;
+                downpayment = 0;
+            }
+            else
+            {
+                Session["Mortgage Amt"] = decimal.Parse(Session["Mortgage Amt"].ToString()) - decimal.Parse(Session["DownPayment"].ToString());
+                mortgage_amt = decimal.Parse(Session["Mortgage Amt"].ToString());
+            }
         }
 
         protected void TextBox7_TextChanged(object sender, EventArgs e)
         {
             Session["Rate"] = TextBox7.Text;
+            if (!Double.TryParse(Session["Rate"].ToString(), out rate))
+            {
+                Session["Rate"] = 0;
+                rate = 0;
+            }
         }
 
         protected void TextBox6_TextChanged(object sender, EventArgs e)
         {
             Session["Extra Payment"] = TextBox6.Text;
+            if (!decimal.TryParse(Session["Extra Payment"].ToString(), out extraPay))
+            {
+                Session["Extra Payment"] = 0;
+                extraPay = 0;
+            }
+        }
+
+        protected void TextBox8_TextChanged(object sender, EventArgs e)
+        {
+            if (!recurring)
+            {
+                Session["Add at"] = TextBox8.Text;
+                if (!int.TryParse(Session["Add at"].ToString(), out addAt))
+                {
+                    Session["Add at"] = 0;
+                    addAt = 0;
+                }
+            }
+
+        }
+
+        protected void CheckBox1_CheckedChanged(object sender, EventArgs e)
+        {
+            Session["Checked"] = CheckBox1.Checked;
+            recurring = Convert.ToBoolean(Session["Checked"]);
+            if (CheckBox1.Checked)
+            {
+                TextBox8.Visible = false;
+                Label5.Visible = false;
+                //Session["Add at"] = 0;
+                //addAt = 0;
+            }
+            else
+            {
+                TextBox8.Visible = true;
+                Label5.Visible = true;
+            }
         }
     }
 }
