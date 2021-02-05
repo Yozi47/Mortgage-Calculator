@@ -99,25 +99,32 @@ namespace Mortgage_Calculator
                     {
                         additionalPay = 0;
                     }
-                    interestAmt = (decimal)(rate / (100 * paymentPerYear)) * mortgage_amt;
+                    interestAmt = Math.Round((decimal)(rate / (100 * paymentPerYear)) * mortgage_amt,2);
                     totalInterestPaid += interestAmt;
-                    principalAmt = requiredPayment - interestAmt + additionalPay;
+                    principalAmt = Math.Round(requiredPayment - interestAmt + additionalPay,2);
                     mortgage_amt -= principalAmt;
                     CreateValueRow(term, requiredPayment, additionalPay, interestAmt, principalAmt, mortgage_amt);
 
                 }
 
                 //Printing out some valueable information.
-                TextArea1.Visible = true;
-                StringBuilder content = new StringBuilder();
-                content.AppendLine("Interest without additional payment = ");
-                content.Append(interestStraightWay);
-                content.AppendLine("Interest this way = ");
-                content.Append(totalInterestPaid);
-                content.AppendLine("Total saving in Interest = ");
-                content.Append(interestStraightWay - totalInterestPaid);
+                P1.Visible = true;
+                P2.Visible = true;
+                P3.Visible = true;
+                StringBuilder content1 = new StringBuilder();
+                StringBuilder content2 = new StringBuilder();
+                StringBuilder content3 = new StringBuilder();
+                content1.AppendLine("Interest without additional payment = ");
+                content1.Append(interestStraightWay);
+                content2.AppendLine("Interest this way = ");
+                content2.Append(totalInterestPaid);
+                content3.AppendLine("Total saving in Interest = ");
+                content3.Append(interestStraightWay - totalInterestPaid);
 
-                TextArea1.InnerText = content.ToString();
+                P1.InnerText = content1.ToString();
+                P2.InnerText = content2.ToString();
+                P3.InnerText = content3.ToString();
+
 
 
             }
@@ -148,6 +155,9 @@ namespace Mortgage_Calculator
             CheckBox1.Checked = false;
             TextBox8.Visible = true;
             Label5.Visible = true;
+            P1.Visible = false;
+            P2.Visible = false;
+            P3.Visible = false;
             Session.Clear();
         }
 
@@ -196,37 +206,7 @@ namespace Mortgage_Calculator
         {
             TableRow columnRow = new TableRow();
             Table1.Rows.Add(columnRow);
-            //if (termcount == 0)
-            //{
-            //    for (int i = 1; i < cells;  i++)
-            //    {
-
-            //        TableCell termCount = new TableCell();
-            //        columnRow.Cells.Add(termCount);
-
-            //        TableCell monthlyPay = new TableCell();
-            //        columnRow.Cells.Add(monthlyPay);
-
-
-            //        TableCell extraPayment = new TableCell();
-            //        columnRow.Cells.Add(extraPayment);
-
-
-            //        TableCell paidInterest = new TableCell();
-            //        columnRow.Cells.Add(paidInterest);
-
-
-            //        TableCell paidPrincipal = new TableCell();
-            //        columnRow.Cells.Add(paidPrincipal);
-            //    }
-            //    TableCell loanRemaining = new TableCell
-            //    {
-            //        Text = remaining.ToString()
-            //    };
-            //    columnRow.Cells.Add(loanRemaining);
-            //}
-            //else
-            //{
+            
             TableCell termCount = new TableCell();
             termCount.Text = termcount.ToString();
             columnRow.Cells.Add(termCount);
@@ -261,6 +241,7 @@ namespace Mortgage_Calculator
         {
             if(mortgage_amt > 0 && years > 0 && paymentPerYear > 0 && downpayment >= 0 && rate > 0)
             {
+                mortgage_amt -= downpayment;
                 TextBox5.ForeColor = System.Drawing.Color.Black;
                 TextBox5.Text = Math.Round((mortgage_amt * (decimal)(rate / (100 * paymentPerYear))* (decimal)Math.Pow(1 + (rate / (100 * paymentPerYear)),years * paymentPerYear)/
                                 (decimal)(Math.Pow(1 + (rate / (100 * paymentPerYear)), years * paymentPerYear) -1 ))).ToString();
@@ -313,11 +294,11 @@ namespace Mortgage_Calculator
                 Session["DownPayment"] = 0;
                 downpayment = 0;
             }
-            else
-            {
-                Session["Mortgage Amt"] = decimal.Parse(Session["Mortgage Amt"].ToString()) - decimal.Parse(Session["DownPayment"].ToString());
-                mortgage_amt = decimal.Parse(Session["Mortgage Amt"].ToString());
-            }
+            //else
+            //{
+            //    Session["Mortgage Amt"] = decimal.Parse(Session["Mortgage Amt"].ToString()) - decimal.Parse(Session["DownPayment"].ToString());
+            //    mortgage_amt = decimal.Parse(Session["Mortgage Amt"].ToString());
+            //}
         }
 
         protected void TextBox7_TextChanged(object sender, EventArgs e)

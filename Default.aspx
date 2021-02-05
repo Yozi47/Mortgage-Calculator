@@ -63,8 +63,12 @@
         </div>
 
         <div style="margin-left: 440px; margin-top: -300px;">
-            <div style="height: 227px; width: 342px; margin-left: 16px; margin-top: 40px">
-               <textarea id="TextArea1" draggable="false" hidden="hidden" name="S1" runat="server"></textarea>
+            <div style="height: 227px; width: 342px; margin-left: 16px; margin-top: 40px;">
+              
+                <p id ="P1" runat="server" style="background-color:aliceblue" visible ="false"></p>
+                <p id ="P2" runat="server" style="background-color:aliceblue" visible ="false"></p>
+                <p id ="P3" runat="server" style="background-color:aliceblue" visible ="false"></p>
+
             </div>
         </div>
 

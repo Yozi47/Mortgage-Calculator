@@ -12,12 +12,10 @@ body {
 }
 
 /* Set widths on the form inputs since otherwise they're 100% wide */
-input,
-select,
 textarea {
     max-width: 280px;
-    width: 331px;
-    height: 221px;
+    width: 259px;
+    height: 0px;
 }
 
 
