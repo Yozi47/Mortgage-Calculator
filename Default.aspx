@@ -49,7 +49,7 @@
                 <asp:Label ID="Label7" runat="server" Text="Interest Rate(%)"></asp:Label>
         </div>
         <div style="height: 0px; margin-top: -22px; width: 223px; margin-left: 200px;">          
-            <asp:TextBox ID="TextBox7" runat="server" Height="20px" Width="176px" TextMode="Number" OnTextChanged="TextBox7_TextChanged" ></asp:TextBox>
+            <asp:TextBox ID="TextBox7" runat="server" Height="20px" Width="176px" OnTextChanged="TextBox7_TextChanged" ></asp:TextBox>
         </div>
         </div>
 

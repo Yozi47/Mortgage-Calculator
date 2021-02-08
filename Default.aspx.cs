@@ -75,7 +75,7 @@ namespace Mortgage_Calculator
                 
         protected void Button1_Click(object sender, EventArgs e)
         {
-            //Create table with the required columns.
+            //Create amortization table with the required number of rows and columns.
             requiredPayment = CalcMinPayment();
             if (mortgage_amt > 0 && years > 0 && paymentPerYear > 0 && downpayment >= 0 && rate > 0 && extraPay >= 0 && addAt >= 0)
             {
